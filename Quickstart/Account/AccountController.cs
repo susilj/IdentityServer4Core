@@ -19,13 +19,19 @@ using IdentityModel;
 using System.Linq;
 using System;
 using System.Collections.Generic;
+using IdentityServer4Core.Data;
+using IdentityServer4Core.Managers;
 
 namespace IdentityServer4.Quickstart.UI
 {
     [SecurityHeaders]
     public class AccountController : Controller
     {
-        private readonly UserManager<ApplicationUser> _userManager;
+        //private readonly UserManager<ApplicationUser> _userManager;
+        private readonly CustomUserManager _userManager;
+
+        private readonly TenantManager tenantManager;
+
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IClientStore _clientStore;
@@ -33,12 +39,14 @@ namespace IdentityServer4.Quickstart.UI
         private readonly IEventService _events;
 
         public AccountController(
-            UserManager<ApplicationUser> userManager,
+            //UserManager<ApplicationUser> userManager,
+            CustomUserManager userManager,
             SignInManager<ApplicationUser> signInManager,
             IIdentityServerInteractionService interaction,
             IClientStore clientStore,
             IAuthenticationSchemeProvider schemeProvider,
-            IEventService events)
+            IEventService events,
+            TenantManager tenantManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -46,6 +54,19 @@ namespace IdentityServer4.Quickstart.UI
             _clientStore = clientStore;
             _schemeProvider = schemeProvider;
             _events = events;
+            this.tenantManager = tenantManager;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateTenant([FromBody]Tenant tenant)
+        {
+            TenantResult result = this.tenantManager.CreateTenant(tenant);
+
+            if(!result.Succeeded)
+                return BadRequest();
+
+            return Ok();
+            //return Created();
         }
 
         /// <summary>
@@ -99,9 +120,17 @@ namespace IdentityServer4.Quickstart.UI
                 var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberLogin, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
-                    var user = await _userManager.FindByNameAsync(model.Username);
-                    await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName));
+                    //var user = await _userManager.FindByNameAsync(model.Username);
+                    var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
+                    var tenant = context.Tenant;
+                    Console.WriteLine($"Tenant: {tenant}");
 
+                    Tenant tenantDetails = this.tenantManager.GetTenantByName(tenant);
+
+                    var user = await _userManager.FindByNameAndTenantAsync(model.Username, tenantDetails.Id);
+                    await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName));
+ 
+                    
                     // make sure the returnUrl is still valid, and if so redirect back to authorize endpoint or a local page
                     // the IsLocalUrl check is only necessary if you want to support additional local pages, otherwise IsValidReturnUrl is more strict
                     if (_interaction.IsValidReturnUrl(model.ReturnUrl) || Url.IsLocalUrl(model.ReturnUrl))

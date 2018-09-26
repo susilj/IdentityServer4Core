@@ -15,6 +15,8 @@ using System;
 using System.Reflection;
 using System.Linq;
 using IdentityServer4.EntityFramework.Mappers;
+using Microsoft.AspNetCore.HttpsPolicy;
+using IdentityServer4Core.Managers;
 
 namespace IdentityServer4Core
 {
@@ -41,9 +43,11 @@ namespace IdentityServer4Core
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(connectionString));
 
-            services.AddIdentity<ApplicationUser, IdentityRole>()
+            services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
+                .AddDefaultTokenProviders()
+                .AddUserManager<CustomUserManager>();
+                //.AddRoleManager<CustomRoleManager>();
 
             services.AddMvc();
 
@@ -88,6 +92,8 @@ namespace IdentityServer4Core
                     options.ClientId = "708996912208-9m4dkjb5hscn7cjrn5u0r4tbgkbj1fko.apps.googleusercontent.com";
                     options.ClientSecret = "wdfPY6t8H8cecgjlxud__4Gh";
                 });
+
+            services.AddTransient<TenantManager>();
         }
 
         public void Configure(IApplicationBuilder app)
@@ -104,6 +110,7 @@ namespace IdentityServer4Core
                 app.UseExceptionHandler("/Home/Error");
             }
 
+            app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseIdentityServer();
             app.UseMvcWithDefaultRoute();
