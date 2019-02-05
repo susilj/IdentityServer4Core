@@ -5,21 +5,46 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20180620153522_initial_identity_migration")]
-    partial class initial_identity_migration
+    [Migration("20190205123442_InitialApplicationAspNetIdentityDbMigration")]
+    partial class InitialApplicationAspNetIdentityDbMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "2.1.1-rtm-30846")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+                .HasAnnotation("ProductVersion", "2.2.1-servicing-10028");
+
+            modelBuilder.Entity("IdentityServer4Core.Models.ApplicationRole", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken();
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256);
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256);
+
+                    b.Property<string>("TenantId")
+                        .HasMaxLength(450);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasName("RoleNameIndex");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("AspNetRoles");
+                });
 
             modelBuilder.Entity("IdentityServer4Core.Models.ApplicationUser", b =>
                 {
@@ -54,6 +79,9 @@ namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
 
                     b.Property<string>("SecurityStamp");
 
+                    b.Property<string>("TenantId")
+                        .HasMaxLength(450);
+
                     b.Property<bool>("TwoFactorEnabled");
 
                     b.Property<string>("UserName")
@@ -68,30 +96,40 @@ namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
                         .IsUnique()
                         .HasName("UserNameIndex");
 
+                    b.HasIndex("TenantId");
+
                     b.ToTable("AspNetUsers");
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+            modelBuilder.Entity("IdentityServer4Core.Models.Tenant", b =>
                 {
                     b.Property<string>("Id")
-                        .ValueGeneratedOnAdd();
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(450);
 
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken();
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50);
+
+                    b.Property<string>("DomainName")
+                        .IsRequired()
+                        .HasMaxLength(250);
+
+                    b.Property<bool>("IsDefault");
 
                     b.Property<string>("Name")
-                        .HasMaxLength(256);
-
-                    b.Property<string>("NormalizedName")
-                        .HasMaxLength(256);
+                        .IsRequired()
+                        .HasMaxLength(250);
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NormalizedName")
-                        .IsUnique()
-                        .HasName("RoleNameIndex");
+                    b.HasIndex("Code")
+                        .IsUnique();
 
-                    b.ToTable("AspNetRoles");
+                    b.HasIndex("DomainName")
+                        .IsUnique();
+
+                    b.ToTable("AspNetTenants");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -178,9 +216,23 @@ namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
                     b.ToTable("AspNetUserTokens");
                 });
 
+            modelBuilder.Entity("IdentityServer4Core.Models.ApplicationRole", b =>
+                {
+                    b.HasOne("IdentityServer4Core.Models.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId");
+                });
+
+            modelBuilder.Entity("IdentityServer4Core.Models.ApplicationUser", b =>
+                {
+                    b.HasOne("IdentityServer4Core.Models.Tenant", "Tenant")
+                        .WithMany("Users")
+                        .HasForeignKey("TenantId");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole")
+                    b.HasOne("IdentityServer4Core.Models.ApplicationRole")
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -204,7 +256,7 @@ namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole")
+                    b.HasOne("IdentityServer4Core.Models.ApplicationRole")
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade);

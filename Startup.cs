@@ -41,7 +41,7 @@ namespace IdentityServer4Core
 
             /// Replace DbContext database from SqLite in template to Postgres
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(connectionString));
+                options.UseMySQL(connectionString));
 
             services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -69,11 +69,11 @@ namespace IdentityServer4Core
                 // .AddInMemoryClients(Config.GetClients())
                 /// Use Postgres database for storing configuration data
                 .AddConfigurationStore(configDb => {
-                    configDb.ConfigureDbContext = db => db.UseNpgsql(connectionString, sql => sql.MigrationsAssembly(migrationsAssembly));
+                    configDb.ConfigureDbContext = db => db.UseMySQL(connectionString, sql => sql.MigrationsAssembly(migrationsAssembly));
                 })
                 /// Use Postgres database for storing operational data
                 .AddOperationalStore(operationalDb => {
-                    operationalDb.ConfigureDbContext = db => db.UseNpgsql(connectionString, sql => sql.MigrationsAssembly(migrationsAssembly));
+                    operationalDb.ConfigureDbContext = db => db.UseMySQL(connectionString, sql => sql.MigrationsAssembly(migrationsAssembly));
                 })
                 .AddAspNetIdentity<ApplicationUser>();
 

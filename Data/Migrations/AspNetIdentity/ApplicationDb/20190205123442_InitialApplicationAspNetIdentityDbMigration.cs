@@ -1,13 +1,27 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
 {
-    public partial class initial_identity_migration : Migration
+    public partial class InitialApplicationAspNetIdentityDbMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "AspNetTenants",
+                columns: table => new
+                {
+                    Id = table.Column<string>(maxLength: 450, nullable: false),
+                    Name = table.Column<string>(maxLength: 250, nullable: false),
+                    DomainName = table.Column<string>(maxLength: 250, nullable: false),
+                    Code = table.Column<string>(maxLength: 50, nullable: false),
+                    IsDefault = table.Column<short>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetTenants", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -15,11 +29,18 @@ namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
                     Id = table.Column<string>(nullable: false),
                     Name = table.Column<string>(maxLength: 256, nullable: true),
                     NormalizedName = table.Column<string>(maxLength: 256, nullable: true),
-                    ConcurrencyStamp = table.Column<string>(nullable: true)
+                    ConcurrencyStamp = table.Column<string>(nullable: true),
+                    TenantId = table.Column<string>(maxLength: 450, nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetRoles", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetRoles_AspNetTenants_TenantId",
+                        column: x => x.TenantId,
+                        principalTable: "AspNetTenants",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -31,20 +52,27 @@ namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
                     NormalizedUserName = table.Column<string>(maxLength: 256, nullable: true),
                     Email = table.Column<string>(maxLength: 256, nullable: true),
                     NormalizedEmail = table.Column<string>(maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(nullable: false),
+                    EmailConfirmed = table.Column<short>(nullable: false),
                     PasswordHash = table.Column<string>(nullable: true),
                     SecurityStamp = table.Column<string>(nullable: true),
                     ConcurrencyStamp = table.Column<string>(nullable: true),
                     PhoneNumber = table.Column<string>(nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(nullable: false),
+                    PhoneNumberConfirmed = table.Column<short>(nullable: false),
+                    TwoFactorEnabled = table.Column<short>(nullable: false),
                     LockoutEnd = table.Column<DateTimeOffset>(nullable: true),
-                    LockoutEnabled = table.Column<bool>(nullable: false),
-                    AccessFailedCount = table.Column<int>(nullable: false)
+                    LockoutEnabled = table.Column<short>(nullable: false),
+                    AccessFailedCount = table.Column<int>(nullable: false),
+                    TenantId = table.Column<string>(maxLength: 450, nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetUsers_AspNetTenants_TenantId",
+                        column: x => x.TenantId,
+                        principalTable: "AspNetTenants",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -52,7 +80,7 @@ namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
+                        .Annotation("MySQL:AutoIncrement", true),
                     RoleId = table.Column<string>(nullable: false),
                     ClaimType = table.Column<string>(nullable: true),
                     ClaimValue = table.Column<string>(nullable: true)
@@ -73,7 +101,7 @@ namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
+                        .Annotation("MySQL:AutoIncrement", true),
                     UserId = table.Column<string>(nullable: false),
                     ClaimType = table.Column<string>(nullable: true),
                     ClaimValue = table.Column<string>(nullable: true)
@@ -165,6 +193,23 @@ namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetRoles_TenantId",
+                table: "AspNetRoles",
+                column: "TenantId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetTenants_Code",
+                table: "AspNetTenants",
+                column: "Code",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetTenants_DomainName",
+                table: "AspNetTenants",
+                column: "DomainName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_AspNetUserClaims_UserId",
                 table: "AspNetUserClaims",
                 column: "UserId");
@@ -189,6 +234,11 @@ namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_TenantId",
+                table: "AspNetUsers",
+                column: "TenantId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -213,6 +263,9 @@ namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "AspNetTenants");
         }
     }
 }
