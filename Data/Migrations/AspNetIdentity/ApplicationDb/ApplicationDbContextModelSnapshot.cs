@@ -14,7 +14,8 @@ namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "2.2.1-servicing-10028");
+                .HasAnnotation("ProductVersion", "2.2.1-servicing-10028")
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("IdentityServer4Core.Models.ApplicationRole", b =>
                 {

@@ -17,6 +17,7 @@ using System.Linq;
 using IdentityServer4.EntityFramework.Mappers;
 using Microsoft.AspNetCore.HttpsPolicy;
 using IdentityServer4Core.Managers;
+using Microsoft.AspNetCore.Mvc;
 
 namespace IdentityServer4Core
 {
@@ -41,7 +42,7 @@ namespace IdentityServer4Core
 
             /// Replace DbContext database from SqLite in template to Postgres
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseMySQL(connectionString));
+                options.UseMySql(connectionString));
 
             services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -49,7 +50,7 @@ namespace IdentityServer4Core
                 .AddUserManager<CustomUserManager>();
                 //.AddRoleManager<CustomRoleManager>();
 
-            services.AddMvc();
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             services.Configure<IISOptions>(iis =>
             {
@@ -69,21 +70,22 @@ namespace IdentityServer4Core
                 // .AddInMemoryClients(Config.GetClients())
                 /// Use Postgres database for storing configuration data
                 .AddConfigurationStore(configDb => {
-                    configDb.ConfigureDbContext = db => db.UseMySQL(connectionString, sql => sql.MigrationsAssembly(migrationsAssembly));
+                    configDb.ConfigureDbContext = db => db.UseMySql(connectionString, sql => sql.MigrationsAssembly(migrationsAssembly));
                 })
                 /// Use Postgres database for storing operational data
                 .AddOperationalStore(operationalDb => {
-                    operationalDb.ConfigureDbContext = db => db.UseMySQL(connectionString, sql => sql.MigrationsAssembly(migrationsAssembly));
+                    operationalDb.ConfigureDbContext = db => db.UseMySql(connectionString, sql => sql.MigrationsAssembly(migrationsAssembly));
                 })
                 .AddAspNetIdentity<ApplicationUser>();
 
             if (Environment.IsDevelopment())
             {
-                builder.AddDeveloperSigningCredential();
+                builder.AddDeveloperSigningCredential(false);
             }
             else
             {
-                throw new Exception("need to configure key material");
+                builder.AddDeveloperSigningCredential(false);
+                // throw new Exception("need to configure key material");
             }
 
             services.AddAuthentication()
@@ -121,10 +123,10 @@ namespace IdentityServer4Core
             using(IServiceScope serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
                 PersistedGrantDbContext persistedGrantDbContext = serviceScope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
-                persistedGrantDbContext.Database.Migrate();
+                //persistedGrantDbContext.Database.Migrate();
 
                 ConfigurationDbContext configurationDbContext = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
-                configurationDbContext.Database.Migrate();
+                //configurationDbContext.Database.Migrate();
 
                 if(!configurationDbContext.Clients.Any())
                 {

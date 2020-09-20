@@ -1,0 +1,28 @@
+Alternatively, you can use MySQL Workbench software to change lower_case_table_names variable.
+
+Run MySQL Workbench software with administration right (Meaning: right click the software icon and "Run as administrator").
+Connect to your database.
+Find Options File under the left panel (Navigator > Instance > Options File)
+In General tab, tick lower_case_table_names to modify the value to 2.
+Click Apply to save the changes
+
+CREATE DATABASE IdentityServer;
+
+CREATE USER 'IS4Admin'@'localhost' IDENTIFIED BY 'Yen3padhukappu(;';
+GRANT ALL PRIVILEGES ON *.* TO 'IS4Admin'@'localhost';
+FLUSH PRIVILEGES;
+
+dotnet ef migrations add InitialIdentityServerPersistedGrantDbMigration -c PersistedGrantDbContext -o Data/Migrations/IdentityServer/PersistedGrantDb
+dotnet ef migrations add InitialIdentityServerConfigurationDbMigration -c ConfigurationDbContext -o Data/Migrations/IdentityServer/ConfigurationDb
+dotnet ef migrations add InitialApplicationDbMigration -c ApplicationDbContext -o Data/Migrations/AspNetIdentity/ApplicationDb
+
+dotnet ef database update --context ConfigurationDbContext
+dotnet ef database update --context PersistedGrantDbContext
+dotnet ef database update --context ApplicationDbContext
+
+dotnet run /seed
+
+
+# multi tenancy
+# https://stackoverflow.com/questions/29094063/how-to-allow-user-to-register-with-duplicate-username-using-identity-framework-1
+# http://ericsmasal.com/2018/05/30/add-multi-tenancy-to-asp-net-core-identity/

@@ -1,9 +1,10 @@
 ﻿using System;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
 {
-    public partial class InitialApplicationAspNetIdentityDbMigration : Migration
+    public partial class InitialApplicationDbMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -15,7 +16,7 @@ namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
                     Name = table.Column<string>(maxLength: 250, nullable: false),
                     DomainName = table.Column<string>(maxLength: 250, nullable: false),
                     Code = table.Column<string>(maxLength: 50, nullable: false),
-                    IsDefault = table.Column<short>(nullable: false)
+                    IsDefault = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -52,15 +53,15 @@ namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
                     NormalizedUserName = table.Column<string>(maxLength: 256, nullable: true),
                     Email = table.Column<string>(maxLength: 256, nullable: true),
                     NormalizedEmail = table.Column<string>(maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<short>(nullable: false),
+                    EmailConfirmed = table.Column<bool>(nullable: false),
                     PasswordHash = table.Column<string>(nullable: true),
                     SecurityStamp = table.Column<string>(nullable: true),
                     ConcurrencyStamp = table.Column<string>(nullable: true),
                     PhoneNumber = table.Column<string>(nullable: true),
-                    PhoneNumberConfirmed = table.Column<short>(nullable: false),
-                    TwoFactorEnabled = table.Column<short>(nullable: false),
+                    PhoneNumberConfirmed = table.Column<bool>(nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(nullable: false),
                     LockoutEnd = table.Column<DateTimeOffset>(nullable: true),
-                    LockoutEnabled = table.Column<short>(nullable: false),
+                    LockoutEnabled = table.Column<bool>(nullable: false),
                     AccessFailedCount = table.Column<int>(nullable: false),
                     TenantId = table.Column<string>(maxLength: 450, nullable: true)
                 },
@@ -80,7 +81,7 @@ namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("MySQL:AutoIncrement", true),
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     RoleId = table.Column<string>(nullable: false),
                     ClaimType = table.Column<string>(nullable: true),
                     ClaimValue = table.Column<string>(nullable: true)
@@ -101,7 +102,7 @@ namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("MySQL:AutoIncrement", true),
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     UserId = table.Column<string>(nullable: false),
                     ClaimType = table.Column<string>(nullable: true),
                     ClaimValue = table.Column<string>(nullable: true)

@@ -9,14 +9,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IdentityServer4Core.Data.Migrations.AspNetIdentity.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20190205123442_InitialApplicationAspNetIdentityDbMigration")]
-    partial class InitialApplicationAspNetIdentityDbMigration
+    [Migration("20190206094618_InitialApplicationDbMigration")]
+    partial class InitialApplicationDbMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "2.2.1-servicing-10028");
+                .HasAnnotation("ProductVersion", "2.2.1-servicing-10028")
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("IdentityServer4Core.Models.ApplicationRole", b =>
                 {
